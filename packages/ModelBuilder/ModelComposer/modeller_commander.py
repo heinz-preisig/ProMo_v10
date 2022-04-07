@@ -775,8 +775,8 @@ class Commander(QtCore.QObject):
           self.__c15_reset()
           self.main.writeStatus("the nature of the transfer on both sides must be the same")
           return {"failed": True}
-      if insert_interface:
-        status = self.__c41_makeInterface()
+      # if insert_interface:
+      #   status = self.__c41_makeInterface()
       # seems all is ok so go ahead and put the intraface
 
       parent_nodeID_source = self.model_container["ID_tree"].getImmediateParent(self.arcSourceID)
@@ -799,14 +799,15 @@ class Commander(QtCore.QObject):
           newnodeID = self.selected_intraface_node
       else:
         self.current_ID_node_or_arc = parent_nodeID_source  # insert on source side
-        pars = self.__addBoundaryNode(pos, NAMES["interface"], connection_network, named_connection_network)
-        newnodeID = pars["new node"]
+        # pars = self.__addBoundaryNode(pos, NAMES["interface"], connection_network, named_connection_network)
+        # newnodeID = pars["new node"]
 
       if insert_intraface:
         # RULE: mechanisms are dependent on network
         # thus only the source is known at this point and the sink one must be done manually.
         token, mechanism, arctype = self.selected_arc_specs
         named_network = self.model_container["nodes"][self.arcSourceID]["named_network"]
+
         arcID, views_with_arc = self.model_container.addArc(self.arcSourceID, newnodeID,
                                                             source_network,
                                                             named_network,
@@ -824,25 +825,33 @@ class Commander(QtCore.QObject):
       elif insert_interface:
         # RULE: interfaces are connected from reading state information writing property
         # rule = self.main.ontology.rules["interface-connections"]
-        interface = self.main.ontology.interfaces[connection_network]
-        token = interface["token"]
-        mechanism = interface["mechanism"]
-        arctype = interface["nature"]
+        # interface = self.main.ontology.interfaces[connection_network]
+        token = "information" #interface["token"]
+        mechanism = "link" #interface["mechanism"]
+        arctype = "unidirectional"  #interface["nature"]
         named_network = self.model_container["nodes"][self.arcSourceID]["named_network"]
-        arcID, views_with_arc = self.model_container.addArc(self.arcSourceID, newnodeID,
+
+        arcID, views_with_arc = self.model_container.addArc(self.arcSourceID, toNodeID,
                                                             source_network,
                                                             named_network,
                                                             mechanism,
                                                             token,
                                                             arctype)
 
-        named_network = self.model_container["nodes"][toNodeID]["named_network"]
-        arcID, views_with_arc = self.model_container.addArc(newnodeID, toNodeID,
-                                                            sink_network,
-                                                            named_network,
-                                                            mechanism,
-                                                            token,
-                                                            arctype)
+        # arcID, views_with_arc = self.model_container.addArc(self.arcSourceID, newnodeID,
+        #                                                     source_network,
+        #                                                     named_network,
+        #                                                     mechanism,
+        #                                                     token,
+        #                                                     arctype)
+        #
+        # named_network = self.model_container["nodes"][toNodeID]["named_network"]
+        # arcID, views_with_arc = self.model_container.addArc(newnodeID, toNodeID,
+        #                                                     sink_network,
+        #                                                     named_network,
+        #                                                     mechanism,
+        #                                                     token,
+        #                                                     arctype)
 
     else:
       named_network = self.model_container["nodes"][toNodeID]["named_network"]
@@ -1359,7 +1368,7 @@ class Commander(QtCore.QObject):
 
   def __c41_makeInterface(self):
     print("__c41_makeInterface -- not yet implemented")
-    self.variables = self.main.ontology.variables()
+    self.variables = self.main.ontology.variables
 
   def __c51_AssignBehaviour(self):
     print("__c51_AssignBehaviour -- not yet implemented")
