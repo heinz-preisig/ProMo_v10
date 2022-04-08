@@ -697,7 +697,7 @@ class Variables(OrderedDict):
     if ID:
       self[ID] = PhysicalVariable(**kwargs)  # NOTE: no check on existence done -- must happen on defining
       self[ID].indices = self.ontology_container.indices  # variable does not know the indices dictionary on definition.
-      self.indexVariables()
+      # self.indexVariables()
       # self.changes["variables"].add(ID)
     else:
       raise VarError("no variable ID defined")
