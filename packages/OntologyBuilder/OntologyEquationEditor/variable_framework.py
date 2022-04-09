@@ -141,7 +141,7 @@ def makeIncidenceDictionaries(variables):
   # for i in inv_incidence_dictionary:
   #   inv_incidence_dictionary[i] = sorted(incidence_dictionary[i])
 
-  return incidence_dictionary, inv_incidence_dictionary_set
+  return incidence_dictionary, inv_incidence_dictionary #_set
 
 def makeIncidentList(equation_ID_coded_string):
   """

@@ -261,6 +261,7 @@ class UI_VariableTableDialog(VariableTable):
     self.selected_ID = selected_ID
     v = self.variables[selected_ID]
 
+    print("debugging -- argument", selected_ID, self.variables.inv_incidence_dictionary[selected_ID])
     not_yet_used = (self.variables.inv_incidence_dictionary[selected_ID] == []) and \
                    (len(self.variables[selected_ID].equations.keys()) == 0)
 
@@ -279,7 +280,7 @@ class UI_VariableTableDialog(VariableTable):
       self.__changeToken(v)
       print("debugging token dialog")
     elif c == 4:
-      # print("clicked 4 - units ", v.units)
+      print("clicked 4 - units ", v.units)
       if not_yet_used:
         self.__changeUnits(v)
     elif c == 5:
@@ -343,7 +344,7 @@ class UI_VariableTableDialog(VariableTable):
       #
       # self.variables.addEquation(var_ID, equation_record)
 
-    # self.variables.indexVariables()
+    self.variables.indexVariables()
     self.reset_table()
     enabled_columns = ENABLED_COLUMNS["edit"]["constant"]
     self.enable_column_selection(enabled_columns)
