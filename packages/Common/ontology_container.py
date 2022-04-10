@@ -1226,7 +1226,9 @@ class OntologyContainer():
     assignment_file_name = FILES["variable_assignment_to_entity_object"] % self.ontology_name
     if OS.path.exists(assignment_file_name):
       data = self.__readVariableAssignmentFile(assignment_file_name)
-      return
+      return data
+    else:
+      return None
 
     # msg = "There is no variable file \n-- run foundation editor again and save information\n-- to generate an empty " \
     #       "" \
@@ -1288,3 +1290,4 @@ class OntologyContainer():
 
   def __readVariableAssignmentFile(self, file_name):
     data = getData(file_name)
+    return data

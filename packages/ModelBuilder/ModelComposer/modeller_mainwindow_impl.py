@@ -52,6 +52,7 @@ from ModelBuilder.ModelComposer.modeller_commander import Commander
 from ModelBuilder.ModelComposer.modeller_logger_impl import Logger
 from ModelBuilder.ModelComposer.modeller_mainwindow import Ui_MainWindow
 from OntologyBuilder.TypedTokenEditor.editor_typed_token_impl import TypedTokenData
+from Common.pop_up_message_box import makeMessageBox
 
 LEFT = QtCore.Qt.LeftDockWidgetArea
 RIGHT = QtCore.Qt.RightDockWidgetArea
@@ -463,7 +464,31 @@ class MainWindowImpl(QtWidgets.QMainWindow):
                                                                        self.ui.layoutInteractiveWidgetTop)
 
   def __makeComboNodeSubClass(self):
-    print("debugging -- make combo node subclass")
+    # print("debugging -- make combo node subclass")
+    network = self.current_network
+    node = self.selected_node_type[network]
+    token = self.selected_token[self.editor_phase][network]
+    obj_ID = "%s|%s"%(node, token)
+    print("debugging -- make combo node subclass", network, node, token, obj_ID)
+
+    self.ui.comboNodeSubClass.clear()
+    variants = set()
+    for o in self.ontology.nodeSubClasses["behaviours"]:
+      if obj_ID in o:
+        print("debugging -- >>>>>>>>>>> found object", obj_ID, o)
+        substrings = o.split('.')
+        variant = substrings[-1]
+        if variant != "base":
+          variants.add(substrings[-1])
+    if len(variants) == 0:
+      pass # NOTE: this is a little of a problem for the translator
+      answer = makeMessageBox("there is no association defined -- save and define an association",buttons=["OK"])
+    self.ui.comboNodeSubClass.addItems(variants)
+    pass
+
+  def __makeComboArcSubClass(self):
+    print("debugging -- arc subclass exposure")
+
 
   def __clearLayout(self, layout):
     while layout.count():
@@ -605,6 +630,7 @@ class MainWindowImpl(QtWidgets.QMainWindow):
   def radioReceiverNode(self, token_class, token, token_string, toggle):
     nw = self.current_network
     self.selected_node_type[nw] = token_string
+    self.__makeComboNodeSubClass()
 
   def radioReceiverArcToken(self, token_class, token, token_string, toggle):
     if toggle:
@@ -622,6 +648,7 @@ class MainWindowImpl(QtWidgets.QMainWindow):
                                                                     self.ui.layoutInteractiveWidgetBottom)
       # self.setSelectorChecked("mechanism", "mechanism", 1)
       # self.radio_selectors["mechanism"].check("mechanism", 1)
+      self.__makeComboArcSubClass()
       print("debugging -- finding how to toggle mechanism")
 
   def setSelectorChecked(self, selector, group, item_number):
@@ -641,6 +668,7 @@ class MainWindowImpl(QtWidgets.QMainWindow):
       self.radio_selectors["nature"] = self.__makeAndAddSelector("nature", distributions,
                                                                  self.radioReceiverArcDistribution, nature,
                                                                  self.ui.layoutInteractiveWidgetBottom)
+      self.__makeComboArcSubClass()
 
   def radioReceiverArcDistribution(self, token_class, token, token_string, toggle):
     if toggle:
@@ -649,6 +677,7 @@ class MainWindowImpl(QtWidgets.QMainWindow):
       nw = self.current_network
       s_token = self.selected_token[self.editor_phase][nw]
       self.selected_arc_nature[nw][s_token] = token_string
+      self.__makeComboArcSubClass()
 
   def radioReceiverNodeToken(self, token_class, token, token_string, toggle):
     if toggle:
