@@ -74,7 +74,7 @@ class NodeInfo(dict):  # (OrderedDict): #
 
 class ArcInfo(dict):  # OrderedDict):  # NOTE: changed to dictionary -- OrderedDict failed to be copied (extract
   # subtree)
-  def __init__(self, fromNodeID, toNodeID, network, named_network, mechanism, token, nature):
+  def __init__(self, fromNodeID, toNodeID, network, named_network, mechanism, token, nature, variant):
     # OrderedDict.__init__(self)
     dict.__init__(self)
     self["name"] = str("%s | %s" % (fromNodeID, toNodeID))
@@ -86,6 +86,7 @@ class ArcInfo(dict):  # OrderedDict):  # NOTE: changed to dictionary -- OrderedD
     self["named_network"] = named_network
     self["mechanism"] = mechanism
     self["nature"] = nature
+    self["variant"] = variant
     # self["type"] = arctype                   # removed
 
   def cleanTypedTokens(self):  # Does not work with the current implementation
@@ -144,7 +145,7 @@ class ModelContainer(dict):
     self["scenes"][nodeID]["nodes"] = {}
     self["scenes"][nodeID]["arcs"] = {}
 
-  def addChild(self, parentNodeID, decoration_positions, network, named_network, node_class, nodetype, features):
+  def addChild(self, parentNodeID, decoration_positions, network, named_network, node_class, nodetype, features, variant):
 
     childNodeID = self["ID_tree"].addChild(parentNodeID)
 
@@ -156,6 +157,7 @@ class ModelContainer(dict):
     self["nodes"][childNodeID]["network"] = network
     self["nodes"][parentNodeID]["class"] = NAMES["branch"]
     self["nodes"][parentNodeID]["type"] = NAMES["branch"]
+    self["nodes"][childNodeID]["variant"] = variant
 
     return childNodeID
 
@@ -360,7 +362,7 @@ class ModelContainer(dict):
         print(">>> warning >>> issues with fixing tokens in node %s with tokens %s trying to delete token %s" % (
                 nodeID, tokens, token))
 
-  def addArc(self, fromNodeID, toNodeID, network, named_network, mechanism, token, nature):
+  def addArc(self, fromNodeID, toNodeID, network, named_network, mechanism, token, nature, variant):
 
     # TODO: one could consider to insert a knot in the middle on each affected scene
 
@@ -370,7 +372,7 @@ class ModelContainer(dict):
     else:
       self.arcID = max(arcsIDList) + 1
     arcID = self.arcID  # str(self.arcID)   #HAP:  str -- int
-    self["arcs"][arcID] = ArcInfo(fromNodeID, toNodeID, network, named_network, mechanism, token, nature)
+    self["arcs"][arcID] = ArcInfo(fromNodeID, toNodeID, network, named_network, mechanism, token, nature, variant)
     subarcsIDs = self.getArcOnNodeScene(arcID)
     nodes_with_arcIDs = list(subarcsIDs.keys())
 

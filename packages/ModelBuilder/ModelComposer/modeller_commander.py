@@ -476,7 +476,8 @@ class Commander(QtCore.QObject):
                                               named_network,
                                               node_class,
                                               node_type,
-                                              features=features)
+                                              features=features,
+                                              variant=self.main.current_node_variant)
     self.state_nodes[newnodeID] = STATES[self.editor_phase]["nodes"][0]
 
     self.__redrawScene(self.current_ID_node_or_arc)
@@ -532,7 +533,8 @@ class Commander(QtCore.QObject):
                                               named_connection_network,
                                               node_class,
                                               application,
-                                              features=features)
+                                              features=features,
+                                              variant=self.main.current_node_variant)
     self.state_nodes[newnodeID] = STATES[self.editor_phase]["nodes"][0]
 
     self.__redrawScene(self.current_ID_node_or_arc)
@@ -813,7 +815,8 @@ class Commander(QtCore.QObject):
                                                             named_network,
                                                             mechanism,
                                                             token,
-                                                            arctype)
+                                                            arctype,
+                                                            variant=self.main.current_arc_variant)
         self.model_container["nodes"][newnodeID]["transfer_constraints"][token] = []  # used in colouring
         named_network = self.model_container["nodes"][toNodeID]["named_network"]
         arcID, views_with_arc = self.model_container.addArc(newnodeID, toNodeID,
@@ -821,7 +824,8 @@ class Commander(QtCore.QObject):
                                                             named_network,
                                                             mechanism,
                                                             token,
-                                                            arctype)
+                                                            arctype,
+                                                            variant=self.main.current_arc_variant)
       elif insert_interface:
         # RULE: interfaces are connected from reading state information writing property
         # rule = self.main.ontology.rules["interface-connections"]
@@ -836,7 +840,8 @@ class Commander(QtCore.QObject):
                                                             named_network,
                                                             mechanism,
                                                             token,
-                                                            arctype)
+                                                            arctype,
+                                                            variant=self.main.current_arc_variant)
 
         # arcID, views_with_arc = self.model_container.addArc(self.arcSourceID, newnodeID,
         #                                                     source_network,
@@ -863,7 +868,8 @@ class Commander(QtCore.QObject):
                                                           self.main.selected_token[self.main.editor_phase][
                                                             self.main.current_network],
                                                           self.main.selected_arc_nature[self.main.current_network][
-                                                            token])
+                                                            token],
+                                                          variant=self.main.current_arc_variant)
 
     self.state_nodes[self.arcSourceID] = STATES[self.editor_phase]["arcs"][0]
     self.arcSourceID = None

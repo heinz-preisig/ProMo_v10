@@ -252,6 +252,8 @@ class MainWindowImpl(QtWidgets.QMainWindow):
     self.old_named_network_name = None
     self.items_to_convert = None
     self.items_to_inject = None
+    self.current_node_variant = None
+    self.current_arc_variant = None
 
     self.editor_phase = EDITOR_PHASES[0]
     self.cursors = {}
@@ -468,12 +470,12 @@ class MainWindowImpl(QtWidgets.QMainWindow):
     network = self.current_network
     node = self.selected_node_type[network]
     token = self.selected_token[self.editor_phase][network]
-    obj_ID = "%s|%s"%(node, token)
+    obj_ID = "node.%s|%s"%(node, token)
     print("debugging -- make combo node subclass", network, node, token, obj_ID)
 
     self.ui.comboNodeSubClass.clear()
     variants = set()
-    for o in self.ontology.nodeSubClasses["behaviours"]:
+    for o in self.ontology.node_arc_SubClasses["behaviours"]:
       if obj_ID in o:
         print("debugging -- >>>>>>>>>>> found object", obj_ID, o)
         substrings = o.split('.')
@@ -484,10 +486,33 @@ class MainWindowImpl(QtWidgets.QMainWindow):
       pass # NOTE: this is a little of a problem for the translator
       answer = makeMessageBox("there is no association defined -- save and define an association",buttons=["OK"])
     self.ui.comboNodeSubClass.addItems(variants)
+    self.current_node_variant = self.ui.comboNodeSubClass.currentText()
     pass
 
   def __makeComboArcSubClass(self):
     print("debugging -- arc subclass exposure")
+    network = self.current_network
+    token = self.selected_token[self.editor_phase][network]
+    mechanism = self.selected_transfer_mechanism[network][token]
+    nature = self.selected_arc_nature[network][token]
+    obj_ID = "arc.%s|%s|%s"%(token, mechanism, nature)
+    print("debugging -- make combo node subclass", network, token, mechanism, nature, obj_ID)
+
+    self.ui.comboArcSubClass.clear()
+    variants = set()
+    for o in self.ontology.node_arc_SubClasses["behaviours"]:
+      if obj_ID in o:
+        print("debugging -- >>>>>>>>>>> found object", obj_ID, o)
+        substrings = o.split('.')
+        variant = substrings[-1]
+        if variant != "base":
+          variants.add(substrings[-1])
+    if len(variants) == 0:
+      pass # NOTE: this is a little of a problem for the translator
+      answer = makeMessageBox("there is no association defined -- save and define an association",buttons=["OK"])
+    self.ui.comboArcSubClass.addItems(variants)
+    self.current_arc_variant = self.ui.comboArcSubClass.currentText()
+    pass
 
 
   def __clearLayout(self, layout):

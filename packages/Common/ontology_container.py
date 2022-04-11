@@ -383,7 +383,7 @@ class OntologyContainer():
     self.version, \
     self.ProMoIRI = self.readVariables()
 
-    self.nodeSubClasses = self.readNodeAssignments()
+    self.node_arc_SubClasses = self.readNodeArcAssignments()
 
     if self.indices == {}:  # DOC: make indices if they do not yet exist
       self.indices = makeIndices(self)
@@ -1220,7 +1220,7 @@ class OntologyContainer():
       if reply == OK:
         exit(-1)
 
-  def readNodeAssignments(self):
+  def readNodeArcAssignments(self):
     # print("debugging -- read node assignments")
 
     assignment_file_name = FILES["variable_assignment_to_entity_object"] % self.ontology_name
@@ -1229,6 +1229,7 @@ class OntologyContainer():
       return data
     else:
       return None
+
 
     # msg = "There is no variable file \n-- run foundation editor again and save information\n-- to generate an empty " \
     #       "" \
