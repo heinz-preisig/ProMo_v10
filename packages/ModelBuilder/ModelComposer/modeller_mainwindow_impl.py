@@ -483,8 +483,9 @@ class MainWindowImpl(QtWidgets.QMainWindow):
         if variant != "base":
           variants.add(substrings[-1])
     if len(variants) == 0:
-      pass # NOTE: this is a little of a problem for the translator
-      answer = makeMessageBox("there is no association defined -- save and define an association",buttons=["OK"])
+      if not self.initialising:
+        pass # NOTE: this is a little of a problem for the translator
+        answer = makeMessageBox("there is no association defined -- save and define an association",buttons=["OK"])
     self.ui.comboNodeSubClass.addItems(variants)
     self.current_node_variant = self.ui.comboNodeSubClass.currentText()
     pass
@@ -508,8 +509,9 @@ class MainWindowImpl(QtWidgets.QMainWindow):
         if variant != "base":
           variants.add(substrings[-1])
     if len(variants) == 0:
-      pass # NOTE: this is a little of a problem for the translator
-      answer = makeMessageBox("there is no association defined -- save and define an association",buttons=["OK"])
+      if not self.initialising:
+        pass # NOTE: this is a little of a problem for the translator
+        answer = makeMessageBox("there is no association defined -- save and define an association",buttons=["OK"])
     self.ui.comboArcSubClass.addItems(variants)
     self.current_arc_variant = self.ui.comboArcSubClass.currentText()
     pass

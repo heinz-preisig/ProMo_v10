@@ -255,8 +255,8 @@ class UI_Equations(QtWidgets.QWidget):
     self.MSG("new equation")
 
   def on_lineNewVariable_returnPressed(self):  # TODO: check on validator
-    symbol = str(self.ui.lineNewVariable.text())
-    if self.variables.existSymbol(self.network_for_variable, symbol):
+    symbol = str(self.ui.lineNewVariable.text()) # RULE: changed from local name space to global name space
+    if self.variables.existSymbolGlobal(symbol): #self.variables.existSymbol(self.network_for_variable, symbol):
       self.MSG("variable already defined")
       self.ui.lineExpression.hide()
       return
@@ -287,9 +287,11 @@ class UI_Equations(QtWidgets.QWidget):
     self.ui.pushDeleteEquation.hide()
 
   def on_lineNewVariable_textChanged(self, text):
+    print("debugging -- text change", text)
     if not self.status_new_variable:
       return
-    if self.variables.existSymbol(self.network_for_variable, text):
+    #RULE: changed from local name space to global name space
+    if self.variables.existSymbolGlobal(text): #     if self.variables.existSymbol(self.network_for_variable, text):
       self.MSG("variable already defined")
     else:
       self.MSG("OK")

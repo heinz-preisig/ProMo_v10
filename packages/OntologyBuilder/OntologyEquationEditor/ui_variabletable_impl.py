@@ -350,9 +350,10 @@ class UI_VariableTableDialog(VariableTable):
     self.enable_column_selection(enabled_columns)
 
   def __changeSymbol(self, variable): #, forbidden_symbols):
-    forbidden_symbols = []
-    for ID in self.variables_in_table:
-      forbidden_symbols.append(self.variables[ID].label)
+    forbidden_symbols = self.variables.nameSpacesForVariableLabelGlobal
+    # forbidden_symbols = []
+    # for ID in self.variables_in_table:
+    #   forbidden_symbols.append(self.variables[ID].label)
     self.ui_symbol.setUp(variable, forbidden_symbols)
     self.ui_symbol.show()
 

@@ -121,6 +121,8 @@ def makeIncidenceDictionaries(variables):
     except:
       equations = variables[v]["equations"]  # variables from variable dict, the variable file format
     for e in equations:
+      if e == 197:
+        print("debugging 197")
       inc_list = makeIncidentList(equations[e]["rhs"])
       incidence_dictionary[e] = (v, inc_list)
       equations[e]["incidence_list"] = inc_list
@@ -128,7 +130,9 @@ def makeIncidenceDictionaries(variables):
       #   inv_incidence_dictionary[int(i)].append(e)
 
   for e in incidence_dictionary:
-    inc_list = incidence_dictionary[e][1]
+    if e == 197:
+      print("debugging again 197")
+    inc_list = incidence_dictionary[e][1:]
     var = incidence_dictionary[e][0]
     for i in inc_list:
       inv_incidence_dictionary_set[int(var)].add(e)
@@ -838,7 +842,10 @@ class Variables(OrderedDict):
     self.equation_type_list = list(equation_type_set)
 
     # make for each variable the namespaces
-    self.nameSpacesForVariableLabel = {}  # TODO: nameSpaceForVariableLabel may not be needed anymore --> cf
+    # Note is used for the definition of a variable in equation version with interface variables that decouple the domains
+    self.nameSpacesForVariableLabel = {}
+    # Note is used for the definition of a variable in equation with the version without interface -- makes the names global
+    self.nameSpacesForVariableLabelGlobal = []
     for ID in self:
       label = self[ID].label
       if label not in self.nameSpacesForVariableLabel:
@@ -852,6 +859,10 @@ class Variables(OrderedDict):
       else:
         space = self.heirs_network_dictionary[definition_network]
         self.nameSpacesForVariableLabel[label][no + 1] = space
+      if label in self.nameSpacesForVariableLabelGlobal:
+        raise VarError(" label already exists")
+      else:
+        self.nameSpacesForVariableLabelGlobal.append(label)
 
     acc = {}
     for nw in self.networks:
@@ -999,6 +1010,11 @@ class Variables(OrderedDict):
       if network in self.nameSpacesForVariableLabel[label][name_space]:
         return True
     return False
+
+  def existSymbolGlobal(self, label):
+    log = label in self.nameSpacesForVariableLabelGlobal
+    return log
+
 
   def getVariableList(self, network):
     """
@@ -1947,7 +1963,7 @@ class Implicit(Operator):
         self.msg = 'warning >>> variable %s not in incidence list' % self.var_to_solve
 
       found_vars, found_equs, found_vars_text, found_equs_text = findDependentVariables(self.space.variables,
-                                                                                        var_function_ID,
+                                                                                        var_to_solve_ID, #var_function_ID,
                                                                                         self.space.indices)
 
       print("debugging -- collect equations for the root expression:", found_vars, found_equs, found_vars_text,
