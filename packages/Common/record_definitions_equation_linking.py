@@ -38,10 +38,10 @@ def functionGetObjectsFromObjectStringID(entity_str_ID):
   return network, component, entity, variant
 
 class EntityBehaviour(dict):
-  def __init__(self, entities):
+  def __init__(self): #, entities):
     super().__init__()
-    for e in entities:
-      self[e] = None
+    # for e in entities:
+    #   self[e] = None
 
   def addVariant(self, entity_str_ID, data): #network, entity, variant, data):
     # entity_str_ID = functionMakeObjectStringID(network, entity, variant)

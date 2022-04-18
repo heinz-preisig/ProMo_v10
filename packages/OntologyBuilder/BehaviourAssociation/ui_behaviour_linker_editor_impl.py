@@ -6,24 +6,24 @@ from os.path import join
 from PyQt5 import QtCore
 from PyQt5 import QtWidgets
 
-from Common.common_resources import Redirect
-from Common.common_resources import Stream
-from Common.common_resources import TEMPLATE_ENTITY_OBJECT
 from Common.common_resources import getData
 from Common.common_resources import getOntologyName
 from Common.common_resources import indexList
 from Common.common_resources import putData
+from Common.common_resources import Redirect
+from Common.common_resources import Stream
+from Common.common_resources import TEMPLATE_ENTITY_OBJECT
 from Common.common_resources import walkDepthFirstFnc
 from Common.ontology_container import OntologyContainer
 from Common.pop_up_message_box import makeMessageBox
 from Common.record_definitions_equation_linking import EntityBehaviour
-# from Common.record_definitions_equation_linking import NodeArcAssociations
-from Common.record_definitions_equation_linking import VariantRecord
 from Common.record_definitions_equation_linking import functionGetObjectsFromObjectStringID
 from Common.record_definitions_equation_linking import functionMakeObjectStringID
+# from Common.record_definitions_equation_linking import NodeArcAssociations
+from Common.record_definitions_equation_linking import VariantRecord
+from Common.resource_initialisation import checkAndFixResources
 from Common.resource_initialisation import DIRECTORIES
 from Common.resource_initialisation import FILES
-from Common.resource_initialisation import checkAndFixResources
 from Common.resources_icons import roundButton
 from Common.ui_string_dialog_impl import UI_String
 from Common.ui_two_list_selector_dialog_impl import UI_TwoListSelector
@@ -225,17 +225,17 @@ class MainWindowImpl(QtWidgets.QMainWindow):
 
     self.arc_objects = self.ontology_container.list_arc_objects_on_networks
     self.node_objects = self.ontology_container.list_inter_node_objects_tokens  # list_node_objects_on_networks_with_tokens
-    entities_list = []
-    for nw in self.node_objects:
-      for o in self.node_objects[nw]:
-        obj = TEMPLATE_ENTITY_OBJECT % (nw, "node", o, "base")
-        entities_list.append(obj)
-    for nw in self.arc_objects:
-      for o in self.arc_objects[nw]:
-        obj = TEMPLATE_ENTITY_OBJECT % (nw, "arc", o, "base")  # RULE: "base" is used for the base bipartite graph
-        entities_list.append(obj)
+    # entities_list = []
+    # for nw in self.node_objects:
+    #   for o in self.node_objects[nw]:
+    #     obj = TEMPLATE_ENTITY_OBJECT % (nw, "node", o, "base")
+    #     entities_list.append(obj)
+    # for nw in self.arc_objects:
+    #   for o in self.arc_objects[nw]:
+    #     obj = TEMPLATE_ENTITY_OBJECT % (nw, "arc", o, "base")  # RULE: "base" is used for the base bipartite graph
+    #     entities_list.append(obj)
 
-    self.entity_behaviours = EntityBehaviour(entities_list)
+    self.entity_behaviours = EntityBehaviour() #entities_list)
 
     self.list_linked_equations = self.__getFilteredEquationList("interface_link_equation")
     # print("debugging")
@@ -261,8 +261,8 @@ class MainWindowImpl(QtWidgets.QMainWindow):
 
     self.selected_InterNetwork_ID = None
     self.selected_Entity_ID = None
-    self.selected_variant_ID = None
-    self.selected_variant_str_ID = "base"
+    # self.selected_variant_ID = None
+    self.selected_variant_str_ID = None
     self.radio_index = None
     self.selected_base_variable = None
     self.rightListEquationIDs = []
@@ -287,7 +287,7 @@ class MainWindowImpl(QtWidgets.QMainWindow):
     self.variant_layout_clean = True
     self.equation_left_clean = True
     self.equation_right_clean = True
-    self.selected_variant = None
+    # self.selected_variant = None
     self.state = "start"
 
   def __readVariableAssignmentToEntity(self):
@@ -300,6 +300,7 @@ class MainWindowImpl(QtWidgets.QMainWindow):
 
       if loaded_entity_behaviours:
         for entity_str_ID in loaded_entity_behaviours:  # careful there may not be all entities at least during
+          print("debugging -- load", entity_str_ID)
           # developments
           if loaded_entity_behaviours[entity_str_ID]:
             dummy = VariantRecord()
@@ -317,7 +318,7 @@ class MainWindowImpl(QtWidgets.QMainWindow):
               nodes[int(nodeStrID)] = data["nodes"][nodeStrID]
             data["nodes"] = nodes
 
-            self.entity_behaviours[entity_str_ID] = VariantRecord(tree=data["tree"],
+            rec = VariantRecord(tree=data["tree"],
                                                                   nodes=data["nodes"],
                                                                   IDs=data["IDs"],
                                                                   root_variable=data["root_variable"],
@@ -325,6 +326,8 @@ class MainWindowImpl(QtWidgets.QMainWindow):
                                                                   blocked_list=data["blocked"],
                                                                   buddies_list=data["buddies"],
                                                                   to_be_inisialised=data["to_be_initialised"])
+            self.entity_behaviours[entity_str_ID] = rec
+            print("debugging -- entity behaviour")
 
   def getObjectSpecificationState(self):
     state = -1
@@ -370,16 +373,17 @@ class MainWindowImpl(QtWidgets.QMainWindow):
     self.ui.listLeft.clear()
     self.ui.listRight.clear()
     self.ui.listVariants.clear()
-    self.selected_variant_str_ID = "base"
+    self.selected_variant_str_ID = self.__makeNewBaseName()
     self.__makeVariantList(True)
-    obj_str = self.__makeCurrentObjectString()
-    if not self.entity_behaviours[
-      obj_str]:  # self.node_arc_associations[self.selected_InterNetwork_strID]["nodes"][v.text()]:
-      # self.selected_object = v.text()
+    self.selected_Entity_ID = self.__makeCurrentObjectString()
+    if not self.entity_behaviours[self.selected_Entity_ID]:
+      self.state = "make_base"
+      # self.selected_variant = "base"
+      self.setState("make_base")
       self.__makeBase()
     else:
       # print("debugging -- load")
-      self.__makeVariantList(True)
+      # self.__makeVariantList(True)
       self.ui.pushButtonMakeLatex.show()
       self.ui.pushButtonViewLatex.show()
 
@@ -398,6 +402,8 @@ class MainWindowImpl(QtWidgets.QMainWindow):
     if not self.entity_behaviours[obj_str]:
       # if self.node_arc_associations[self.selected_InterNetwork_strID]["arcs"]:
       self.selected_object = v.text()
+      self.state = "make_base"
+      # self.selected_variant = "base"
       self.__makeBase()
     else:
       # print("debugging -- load")
@@ -410,11 +416,11 @@ class MainWindowImpl(QtWidgets.QMainWindow):
     # print("debugging -- state: ", self.state)
     var_strID, equ_strID = self.leftIndex[row]
     equation_label = v.text()
-    self.getState()
+    # self.getState()
     if self.state == "show":
       return
 
-    elif self.state == "make_base":
+    elif "make_base" in self.state:
       self.current_base_var_ID = int(var_strID)
       self.current_base_equ_ID = int(equ_strID)
       self.__makeEquationTextButton(equation_label, self.ui.pushButtonLeft, "click to accept")
@@ -460,20 +466,25 @@ class MainWindowImpl(QtWidgets.QMainWindow):
       self.ui.listRight.clear()
 
   def on_pushButtonLeft_pressed(self):
-    self.getState()
+    # self.getState()
     print("debugging -- push left button state:", self.state)
-    if self.state == "make_base":
+    if "make_base" in self.state:
       # variant = "base"
       var_ID = self.current_base_var_ID
       equ_ID = self.current_base_equ_ID
-      obj_str = self.__makeCurrentObjectString()
+      self.selected_Entity_ID = self.__makeCurrentObjectString()
       blocked = self.list_linked_equations
-      var_equ_tree_graph, entity_assignments = self.analyseBiPartiteGraph(obj_str, var_ID, blocked, start_equation=equ_ID)
-      self.status_report("generated graph for %s" % (obj_str))
+      var_equ_tree_graph, entity_assignments = self.analyseBiPartiteGraph(self.selected_Entity_ID,
+                                                                          var_ID, blocked,
+                                                                          start_equation=equ_ID)
+      self.status_report("generated graph for %s" % (self.selected_Entity_ID))
       # component = self.node_arc.strip("s")
-      self.selected_variant_str_ID = "base"
-      obj = self.__makeCurrentObjectString()
-      self.entity_behaviours.addVariant(obj, entity_assignments)
+      # if self.state == "make_base":
+      #   self.selected_variant_str_ID = "base"
+      # else:
+      #   self.selected_variant_str_ID = self.__makeNewBaseName()
+      # obj = self.__makeCurrentObjectString()
+      self.entity_behaviours.addVariant(self.selected_Entity_ID, entity_assignments)
       self.__makeVariantList(True)
 
       graph_file = var_equ_tree_graph.render()
@@ -517,10 +528,12 @@ class MainWindowImpl(QtWidgets.QMainWindow):
       self.__makeVariantList(True)
 
       incidence_dictionary, inv_incidence_dictionary = makeIncidenceDictionaries(self.ontology_container.variables)
-      found_vars, found_equs, found_vars_text, found_equs_text = findDependentVariables(self.ontology_container.variables, 95,
-                                                                        self.ontology_container.indices)
+      found_vars, found_equs, found_vars_text, found_equs_text = findDependentVariables(
+              self.ontology_container.variables, 95,
+              self.ontology_container.indices)
 
-      print("debugging -- collect equations for the root expression:",found_vars, found_equs, found_vars_text, found_equs_text )
+      print("debugging -- collect equations for the root expression:", found_vars, found_equs, found_vars_text,
+            found_equs_text)
       #
       # file_name = obj.replace("|", "__").replace(".","_")
       # makeLatexDoc(file_name, entity_assignments, self.ontology_container)
@@ -531,6 +544,18 @@ class MainWindowImpl(QtWidgets.QMainWindow):
       pass
       # print("debugging -- show don't do anything")
 
+  def __makeNewBaseName(self):
+    count_max = -1
+    # obj_str = self.__makeCurrentObjectString()
+    # if not self.entity_behaviours[obj_str]:
+    for b in self.entity_behaviours:
+      if "base_" in b:
+        _s, no = b.split("_")
+        count_max = max(count_max, int(no))
+    count_max += 1
+    print("debugging -- base count", count_max)
+    return "base_%s" % count_max
+
   def on_pushButtonUpdate_pressed(self):
     obj_str = self.__makeCurrentObjectString()
     # print("debugging -- update pressed %s" % self.state)
@@ -538,7 +563,8 @@ class MainWindowImpl(QtWidgets.QMainWindow):
     equ_ID = self.selected_base_equation
     blocked = list(set(self.list_linked_equations) or set(self.rightListEquationIDs))
     var_equ_tree_graph, entity_assignments = self.analyseBiPartiteGraph(obj_str, var_ID,
-                                                                        blocked, start_equation=equ_ID)  # self.rightListEquationIDs)
+                                                                        blocked,
+                                                                        start_equation=equ_ID)  # self.rightListEquationIDs)
     graph_file = var_equ_tree_graph.render()
     self.status_report("generated graph for %s " % (obj_str))
 
@@ -565,21 +591,20 @@ class MainWindowImpl(QtWidgets.QMainWindow):
       set = False
     self.ui.listVariants.clear()
     self.ui.listVariants.addItems(self.variant_list)
-    if set:
-      row = self.variant_list.index(self.selected_variant_str_ID)
-      self.ui.listVariants.setCurrentRow(row)
-      return True
-    else:
-      self.selected_variant_str_ID = "base"
-      self.setState("make_base")
-      return False
+    # if (not set) or ("base" in self.state):
+    #   self.selected_variant_str_ID = self.__makeNewBaseName()
+    #   return False
+    # else:
+    # row = self.variant_list.index(self.selected_variant_str_ID)
+    # self.ui.listVariants.setCurrentRow(row)
+    return True
 
   def setState(self, state):
     self.state = state
     self.ui.groupBoxApplication.show()
     if state == "show":
       self.ui.radioButtonShowVariant.setChecked(True)
-    elif state == "make_base":
+    elif "make_base" in self.state:
       self.ui.radioButtonMakBase.setChecked(True)
     elif state == "duplicates":
       self.ui.radioButtonDuplicates.setChecked(True)
@@ -594,7 +619,11 @@ class MainWindowImpl(QtWidgets.QMainWindow):
     if self.ui.radioButtonShowVariant.isChecked():
       self.state = "show"
     elif self.ui.radioButtonMakBase.isChecked():
-      self.state = "make_base"
+      obj_str = self.__makeCurrentObjectString()
+      if not self.entity_behaviours[obj_str]:
+        self.state = "make_base_new"
+      else:
+        self.state = "make_base"
     elif self.ui.radioButtonDuplicates.isChecked():
       self.state = "duplicates"
     elif self.ui.radioButtonNewVariant.isChecked():
@@ -614,7 +643,8 @@ class MainWindowImpl(QtWidgets.QMainWindow):
       self.selected_variant_str_ID = self.variant_list[row]
       self.__makeAndDisplayEquationListLeftAndRight()
       self.ui.groupBoxControls.show()
-      self.setState("show")
+      if "base" not in self.state:
+        self.setState("show")
     else:
       self.ui.listLeft.clear()
       self.ui.listRight.clear()
@@ -708,6 +738,28 @@ class MainWindowImpl(QtWidgets.QMainWindow):
     self.leftListEquationIDs = self.__makeDuplicateShows()
     self.leftIndex = self.__makeLeftRightList(self.leftListEquationIDs, self.ui.listLeft)
     self.ui.pushButtonLeft.hide()
+
+  def on_radioButtonMakBase_pressed(self):
+    obj_str = self.__makeCurrentObjectString()
+    if not self.entity_behaviours[obj_str]:
+      self.state = "make_base"
+    else:
+      self.state = "make_base_new"
+      self.selected_variant_str_ID = self.__makeNewBaseName()
+
+    self.ui.pushButtonLeft.setText('')
+    self.ui.pushButtonLeft.hide()
+    self.ui.groupBoxControls.hide()
+    self.ui.listLeft.clear()
+    self.ui.listRight.clear()
+    # self.ui.listVariants.clear()
+    # self.selected_variant_str_ID = "base"
+    # self.__makeVariantList(True)
+    self.__makeBase()
+    # self.leftIndex = self.__makeLeftRightList(self.leftListEquationIDs, self.ui.listLeft)
+    # self.rightIndex = self.__makeLeftRightList(self.rightListEquationIDs, self.ui.listRight)
+    # self.ui.pushButtonLeft.hide()
+
 
   def on_radioButtonNewVariant_pressed(self):
     if not self.variant_list:
@@ -859,6 +911,8 @@ class MainWindowImpl(QtWidgets.QMainWindow):
 
   def __makeCurrentObjectString(self):
     component = self.node_arc.strip("s")
+    if "base" in self.state:
+       self.selected_variant_str_ID = self.__makeNewBaseName()
     object_string = TEMPLATE_ENTITY_OBJECT % (
             self.selected_InterNetwork_strID, component, self.selected_object, self.selected_variant_str_ID)
     if object_string not in self.entity_behaviours:
@@ -976,9 +1030,7 @@ class MainWindowImpl(QtWidgets.QMainWindow):
     self.ui.pushButtonLeft.setText('')
     self.ui.pushButtonLeft.hide()
     self.ui.groupBoxControls.show()
-
-    self.setState("make_base")
-    self.selected_variant = "base"
+    # self.selected_variant = "base"
     nw = self.selected_InterNetwork_strID
 
     rules_selector = UI_TwoListSelector()
@@ -988,8 +1040,7 @@ class MainWindowImpl(QtWidgets.QMainWindow):
     self.rules[nw] = self.ontology_container.variable_types_on_networks[nw]
     variable_equation_list, variable_types_having_equations = self.__makeEquationList_per_variable_type()
 
-    rules_selector.populateLists(variable_types_having_equations,
-                                 [])  # self.ontology_container.variable_types_on_networks[nw], [])
+    rules_selector.populateLists(variable_types_having_equations,[])
     rules_selector.exec_()
     selection = rules_selector.getSelected()
     if not selection:
@@ -998,12 +1049,12 @@ class MainWindowImpl(QtWidgets.QMainWindow):
 
     self.variable_equation_list, variable_types_having_equations = self.__makeEquationList_per_variable_type()
 
-    left_equations = self.variable_equation_list[self.selected_InterNetwork_strID][
-      self.node_arc]  # self.variable_equation_list[self.selected_InterNetwork_strID][self.node_arc]
+    left_equations = self.variable_equation_list[self.selected_InterNetwork_strID][self.node_arc]
     self.leftIndex = self.__makeLeftRightList(left_equations, self.ui.listLeft)
     self.status_report("making base for %s" % self.selected_Entity_ID)
-    self.selected_variant = None
+    # self.selected_variant = None
     self.__makeAndDisplayEquationListLeftAndRight()
+    self.setState("make_base")
 
   def __makeEquationList_per_variable_type(self):
 
