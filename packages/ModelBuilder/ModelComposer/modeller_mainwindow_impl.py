@@ -591,6 +591,7 @@ class MainWindowImpl(QtWidgets.QMainWindow):
     self.radio_selectors["networks"].check("networks", index)
     index = self.named_network_dictionary.indexForNamedNetwork(self.current_network, named_network)
     self.radio_selectors["named_networks"].check("named_networks", index)
+    self.__makeComboNodeSubClass()
 
   def setNodeType(self, node_type):
     print("debugging -- node type", node_type)
@@ -601,6 +602,10 @@ class MainWindowImpl(QtWidgets.QMainWindow):
     self.radio_selectors["nodes"].check("nodes", index)
 
     self.__makeComboNodeSubClass()
+
+  def setNodeVariant(self, variant):
+    index= self.ui.comboNodeSubClass.findText(variant)
+    self.ui.comboNodeSubClass.setCurrentIndex(index)
 
   @QtCore.pyqtSlot(str)
   def on_comboEditorPhase_currentTextChanged(self, phase):

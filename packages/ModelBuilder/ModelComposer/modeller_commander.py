@@ -170,10 +170,12 @@ class Commander(QtCore.QObject):
       network = self.model_container["nodes"][self.current_ID_node_or_arc]["network"]
       named_network = self.model_container["nodes"][self.current_ID_node_or_arc]["named_network"]
       node_type = self.model_container["nodes"][self.current_ID_node_or_arc]["type"]
+      variant = self.model_container["nodes"][self.current_ID_node_or_arc]["variant"]
       # print("node simple network:", network)
       if network in self.main.networks:
         self.main.setNetwork(network, named_network)
       self.main.setNodeType(node_type)
+      self.main.setNodeVariant(variant)
     if graphics_root_object == NAMES["connection"]:
       network = self.model_container["arcs"][self.current_ID_node_or_arc]["network"]
       named_network = self.model_container["arcs"][self.current_ID_node_or_arc]["named_network"]
