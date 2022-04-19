@@ -326,6 +326,8 @@ class MainWindowImpl(QtWidgets.QMainWindow):
                                                                   blocked_list=data["blocked"],
                                                                   buddies_list=data["buddies"],
                                                                   to_be_inisialised=data["to_be_initialised"])
+            if "base_" in entity_str_ID:
+              entity_str_ID = entity_str_ID.replace("base_", "base#")
             self.entity_behaviours[entity_str_ID] = rec
             print("debugging -- entity behaviour")
 
@@ -362,6 +364,13 @@ class MainWindowImpl(QtWidgets.QMainWindow):
     self.node_arc = self.ui.tabWidgetNodesArcs.tabText(self.ui.tabWidgetNodesArcs.currentIndex())
     self.__makeObjectList()
 
+  def __existBehviourDefinition(self):
+    obj = self.selected_object
+    for o in self.entity_behaviours:
+      if obj in o:
+        return True
+    return False
+
   def on_listNodeObjects_itemClicked(self, v):
     # print('debugging -- item clicked', v.text())
     # selected_InterNetwork_strID self.node_arc v.text()
@@ -373,13 +382,15 @@ class MainWindowImpl(QtWidgets.QMainWindow):
     self.ui.listLeft.clear()
     self.ui.listRight.clear()
     self.ui.listVariants.clear()
-    self.selected_variant_str_ID = self.__makeNewBaseName()
-    self.__makeVariantList(True)
-    self.selected_Entity_ID = self.__makeCurrentObjectString()
-    if not self.entity_behaviours[self.selected_Entity_ID]:
+    # self.selected_variant_str_ID = self.__makeNewBaseName()
+    exist_base = self.__makeVariantList()
+    # self.selected_Entity_ID = self.selected_Entity_ID #__makeCurrentObjectString()
+    # if not self.entity_behaviours[self.selected_Entity_ID]:
+    #   self.state = "make_base"
+    #   # self.selected_variant = "base"
+    #   self.setState("make_base")
+    if not exist_base: #self.__existBehviourDefinition():
       self.state = "make_base"
-      # self.selected_variant = "base"
-      self.setState("make_base")
       self.__makeBase()
     else:
       # print("debugging -- load")
@@ -397,8 +408,8 @@ class MainWindowImpl(QtWidgets.QMainWindow):
     self.ui.listRight.clear()
     self.ui.listVariants.clear()
     self.selected_variant_str_ID = "base"
-    self.__makeVariantList(True)
-    obj_str = self.__makeCurrentObjectString()
+    self.__makeVariantList()
+    obj_str = self.selected_Entity_ID #__makeCurrentObjectString()
     if not self.entity_behaviours[obj_str]:
       # if self.node_arc_associations[self.selected_InterNetwork_strID]["arcs"]:
       self.selected_object = v.text()
@@ -485,7 +496,7 @@ class MainWindowImpl(QtWidgets.QMainWindow):
       #   self.selected_variant_str_ID = self.__makeNewBaseName()
       # obj = self.__makeCurrentObjectString()
       self.entity_behaviours.addVariant(self.selected_Entity_ID, entity_assignments)
-      self.__makeVariantList(True)
+      self.__makeVariantList()
 
       graph_file = var_equ_tree_graph.render()
       self.ui.pushButtonLeft.hide()
@@ -502,15 +513,15 @@ class MainWindowImpl(QtWidgets.QMainWindow):
 
       var_ID = self.selected_base_variable
       equ_ID = self.selected_base_equation
-      obj_str = self.__makeCurrentObjectString()
 
       self.variant_list = self.__makeVariantStringList()
       if self.state in ["duplicates", "new_variant"]:
         self.selected_variant_str_ID = self.__askForNewVariantName(self.variant_list)
+        self.selected_Entity_ID = self.__makeCurrentObjectString()
         self.ui.listLeft.clear()
         self.ui.listRight.clear()
         if self.state == "duplicates":
-          selectedListEquationIDs = self.entity_behaviours.getEquationIDList(obj_str)
+          selectedListEquationIDs = self.entity_behaviours.getEquationIDList(self.selected_Entity_ID)
           # this is tricky: the right list may include already blocked ones.
           for e in self.rightListEquationIDs:
             if e in selectedListEquationIDs:
@@ -518,14 +529,14 @@ class MainWindowImpl(QtWidgets.QMainWindow):
           self.leftListEquationIDs = selectedListEquationIDs
 
       blocked = list(set(self.list_linked_equations) | set(self.rightListEquationIDs))
-      var_equ_tree_graph, entity_assignments = self.analyseBiPartiteGraph(obj_str, var_ID,
+      var_equ_tree_graph, entity_assignments = self.analyseBiPartiteGraph(self.selected_Entity_ID, var_ID,
                                                                           blocked, start_equation=equ_ID)
       graph_file = var_equ_tree_graph.render()
-      self.status_report("generated graph for %s " % (obj_str))
+      self.status_report("generated graph for %s " % (self.selected_Entity_ID))
 
-      obj = self.__makeCurrentObjectString()
+      obj = self.selected_Entity_ID #__makeCurrentObjectString()
       self.entity_behaviours.addVariant(obj, entity_assignments)
-      self.__makeVariantList(True)
+      self.__makeVariantList()
 
       incidence_dictionary, inv_incidence_dictionary = makeIncidenceDictionaries(self.ontology_container.variables)
       found_vars, found_equs, found_vars_text, found_equs_text = findDependentVariables(
@@ -543,21 +554,22 @@ class MainWindowImpl(QtWidgets.QMainWindow):
     elif self.state == "show":
       pass
       # print("debugging -- show don't do anything")
+    self.setState("show")
 
   def __makeNewBaseName(self):
     count_max = -1
-    # obj_str = self.__makeCurrentObjectString()
-    # if not self.entity_behaviours[obj_str]:
+
     for b in self.entity_behaviours:
-      if "base_" in b:
-        _s, no = b.split("_")
-        count_max = max(count_max, int(no))
+      if self.selected_object in b:
+        if "base#" in b:
+          _s, no = b.split("#")
+          count_max = max(count_max, int(no))
     count_max += 1
     print("debugging -- base count", count_max)
-    return "base_%s" % count_max
+    return "base#%s" % count_max
 
   def on_pushButtonUpdate_pressed(self):
-    obj_str = self.__makeCurrentObjectString()
+    obj_str = self.selected_Entity_ID #__makeCurrentObjectString()
     # print("debugging -- update pressed %s" % self.state)
     var_ID = self.selected_base_variable
     equ_ID = self.selected_base_equation
@@ -582,22 +594,17 @@ class MainWindowImpl(QtWidgets.QMainWindow):
     print("debugging -- ", equations)
     return equations
 
-  def __makeVariantList(self, set):
+  def __makeVariantList(self):
     """
     gets the current variant list and builds the gui list
     """
     self.variant_list = self.__makeVariantStringList()
-    if not self.variant_list:
-      set = False
     self.ui.listVariants.clear()
-    self.ui.listVariants.addItems(self.variant_list)
-    # if (not set) or ("base" in self.state):
-    #   self.selected_variant_str_ID = self.__makeNewBaseName()
-    #   return False
-    # else:
-    # row = self.variant_list.index(self.selected_variant_str_ID)
-    # self.ui.listVariants.setCurrentRow(row)
-    return True
+    if not self.variant_list:
+      return False
+    else:
+      self.ui.listVariants.addItems(self.variant_list)
+      return True
 
   def setState(self, state):
     self.state = state
@@ -615,23 +622,23 @@ class MainWindowImpl(QtWidgets.QMainWindow):
     elif state == "instantiate_variant":
       self.ui.radioButtonInstantiateVariant.setChecked(True)
 
-  def getState(self):
-    if self.ui.radioButtonShowVariant.isChecked():
-      self.state = "show"
-    elif self.ui.radioButtonMakBase.isChecked():
-      obj_str = self.__makeCurrentObjectString()
-      if not self.entity_behaviours[obj_str]:
-        self.state = "make_base_new"
-      else:
-        self.state = "make_base"
-    elif self.ui.radioButtonDuplicates.isChecked():
-      self.state = "duplicates"
-    elif self.ui.radioButtonNewVariant.isChecked():
-      self.state = "new_variant"
-    elif self.ui.radioButtonEditVariant.isChecked():
-      self.state = "edit_variant"
-    elif self.ui.radioButtonInstantiateVariant.isChecked():
-      self.state = "instantiate_variant"
+  # def getState(self):
+  #   if self.ui.radioButtonShowVariant.isChecked():
+  #     self.state = "show"
+  #   elif self.ui.radioButtonMakBase.isChecked():
+  #     obj_str = self.__makeCurrentObjectString()
+  #     if not self.entity_behaviours[obj_str]:
+  #       self.state = "make_base_new"
+  #     else:
+  #       self.state = "make_base"
+  #   elif self.ui.radioButtonDuplicates.isChecked():
+  #     self.state = "duplicates"
+  #   elif self.ui.radioButtonNewVariant.isChecked():
+  #     self.state = "new_variant"
+  #   elif self.ui.radioButtonEditVariant.isChecked():
+  #     self.state = "edit_variant"
+  #   elif self.ui.radioButtonInstantiateVariant.isChecked():
+  #     self.state = "instantiate_variant"
 
   # push buttons
   def on_pushButtonRight_pressed(self):
@@ -641,20 +648,19 @@ class MainWindowImpl(QtWidgets.QMainWindow):
   def on_listVariants_currentRowChanged(self, row):
     if self.variant_list:
       self.selected_variant_str_ID = self.variant_list[row]
+      self.selected_Entity_ID = self.__makeCurrentObjectString()
       self.__makeAndDisplayEquationListLeftAndRight()
       self.ui.groupBoxControls.show()
-      if "base" not in self.state:
-        self.setState("show")
     else:
       self.ui.listLeft.clear()
       self.ui.listRight.clear()
       self.ui.radioButtonShowVariant.setChecked(False)
-    # print("debugging -- current variant", self.selected_variant_str_ID)
+    print("debugging -- current variant", self.selected_variant_str_ID)
 
   def on_pushButtonDelete_pressed(self):
-    obj = self.__makeCurrentObjectString()
+    obj = self.selected_Entity_ID #__makeCurrentObjectString()
     self.entity_behaviours.removeVariant(obj)  # nw_str_ID, entity_label_ID, variant)
-    deleted_base = self.__makeVariantList(False)
+    deleted_base = self.__makeVariantList()
     self.ui.listLeft.clear()
     self.ui.listRight.clear()
     # self.ui.radioButtonShowVariant.setChecked(True)
@@ -710,7 +716,7 @@ class MainWindowImpl(QtWidgets.QMainWindow):
         print("error -- this object does not seem to have an assignment: %s" % obj)
 
   def on_pushButtonViewLatex_pressed(self):
-    obj = self.__makeCurrentObjectString()
+    obj = self.selected_Entity_ID #__makeCurrentObjectString()
     file_name = obj.replace("|", "__").replace(".", "_").replace(" ", "_")
     file = join(DIRECTORIES["latex_location"] % self.ontology_name, file_name) + ".pdf"
     if os.path.exists(file):
@@ -732,7 +738,7 @@ class MainWindowImpl(QtWidgets.QMainWindow):
     if not self.variant_list:
       return
 
-    entity_object_str = self.__makeCurrentObjectString()
+    entity_object_str = self.selected_Entity_ID #__makeCurrentObjectString()
     self.selected_base_variable = self.entity_behaviours[entity_object_str]["root_variable"]
     self.selected_base_equation = self.entity_behaviours[entity_object_str]["root_equation"]
     self.leftListEquationIDs = self.__makeDuplicateShows()
@@ -740,12 +746,13 @@ class MainWindowImpl(QtWidgets.QMainWindow):
     self.ui.pushButtonLeft.hide()
 
   def on_radioButtonMakBase_pressed(self):
-    obj_str = self.__makeCurrentObjectString()
+    obj_str = self.selected_Entity_ID #__makeCurrentObjectString()
     if not self.entity_behaviours[obj_str]:
       self.state = "make_base"
+      self.selected_variant_str_ID = self.__
     else:
       self.state = "make_base_new"
-      self.selected_variant_str_ID = self.__makeNewBaseName()
+      # self.selected_variant_str_ID = self.__makeNewBaseName()
 
     self.ui.pushButtonLeft.setText('')
     self.ui.pushButtonLeft.hide()
@@ -911,24 +918,24 @@ class MainWindowImpl(QtWidgets.QMainWindow):
 
   def __makeCurrentObjectString(self):
     component = self.node_arc.strip("s")
-    if "base" in self.state:
-       self.selected_variant_str_ID = self.__makeNewBaseName()
+    # if "base" in self.state:
+    #    self.selected_variant_str_ID = self.__makeNewBaseName()
     object_string = TEMPLATE_ENTITY_OBJECT % (
             self.selected_InterNetwork_strID, component, self.selected_object, self.selected_variant_str_ID)
     if object_string not in self.entity_behaviours:
       self.entity_behaviours[object_string] = None
     return object_string
 
-  def __makeAndDisplayEquationListLeftAndRight(self):
+  def __makeAndDisplayEquationListLeftAndRight(self, equation_ID_list=[]):
 
-    entity_str_ID = self.__makeCurrentObjectString()
-    try:
-      if self.state == "new_variant":
-        # print("debugging -- new variant, entity string", entity_str_ID)
-        if "base" in entity_str_ID:
-          pass
-          # print("debugging -- found D-D", entity_str_ID)
-
+    entity_str_ID = self.selected_Entity_ID #__makeCurrentObjectString()
+    # try:
+    # if self.state == "new_variant":
+    #   # print("debugging -- new variant, entity string", entity_str_ID)
+    #   if "base" in entity_str_ID:
+    #     pass
+    #     # print("debugging -- found D-D", entity_str_ID)
+    if "base" not in self.state:
       self.selected_base_variable = self.entity_behaviours.getRootVariableID(entity_str_ID)
       self.selected_base_equation = self.entity_behaviours.getRootEquationID(entity_str_ID)
       if not self.selected_base_variable:
@@ -943,20 +950,21 @@ class MainWindowImpl(QtWidgets.QMainWindow):
 
       self.__makeEquationTextButton(equation_label, self.ui.pushButtonLeft, "click to accept")
 
-      # print("debugging -- left list showing ", equation_ID_list[0:5])
+    # print("debugging -- left list showing ", equation_ID_list[0:5])
+    else:
+      blocked = []
+    equation_ID_set = set()
+    [equation_ID_set.add(e) for e in equation_ID_list]
+    block_set = set()
+    [block_set.add(e) for e in blocked]
+    left_eqs = list(equation_ID_set - block_set)
+    self.leftListEquationIDs = left_eqs
 
-      equation_ID_set = set()
-      [equation_ID_set.add(e) for e in equation_ID_list]
-      block_set = set()
-      [block_set.add(e) for e in blocked]
-      left_eqs = list(equation_ID_set - block_set)
-      self.leftListEquationIDs = left_eqs
-
-      self.leftIndex = self.__makeLeftRightList(left_eqs, self.ui.listLeft)
-      self.rightIndex = self.__makeLeftRightList(blocked, self.ui.listRight)
-      self.rightListEquationIDs = deepcopy(blocked)
-    except:
-      self.entity_behaviours.removeVariant(entity_str_ID)
+    self.leftIndex = self.__makeLeftRightList(left_eqs, self.ui.listLeft)
+    self.rightIndex = self.__makeLeftRightList(blocked, self.ui.listRight)
+    self.rightListEquationIDs = deepcopy(blocked)
+    # except:
+    #   self.entity_behaviours.removeVariant(entity_str_ID)
 
   def __makeLeftRightList(self, eq_list, ui):
     label_list = []
@@ -991,7 +999,7 @@ class MainWindowImpl(QtWidgets.QMainWindow):
     # nw = self.selected_InterNetwork_ID
     # entity = self.selected_Entity_ID
     # variant = self.selected_variant_ID
-    entity_object_str = self.__makeCurrentObjectString()
+    entity_object_str = self.selected_Entity_ID #__makeCurrentObjectString()
 
     nodes = self.entity_behaviours[entity_object_str]["nodes"]
     blocked = self.entity_behaviours[entity_object_str]["blocked"]
@@ -1030,6 +1038,8 @@ class MainWindowImpl(QtWidgets.QMainWindow):
     self.ui.pushButtonLeft.setText('')
     self.ui.pushButtonLeft.hide()
     self.ui.groupBoxControls.show()
+
+    self.selected_variant_str_ID = self.__makeNewBaseName()
     # self.selected_variant = "base"
     nw = self.selected_InterNetwork_strID
 
@@ -1053,7 +1063,7 @@ class MainWindowImpl(QtWidgets.QMainWindow):
     self.leftIndex = self.__makeLeftRightList(left_equations, self.ui.listLeft)
     self.status_report("making base for %s" % self.selected_Entity_ID)
     # self.selected_variant = None
-    self.__makeAndDisplayEquationListLeftAndRight()
+    self.__makeAndDisplayEquationListLeftAndRight(equation_ID_list=left_equations)
     self.setState("make_base")
 
   def __makeEquationList_per_variable_type(self):

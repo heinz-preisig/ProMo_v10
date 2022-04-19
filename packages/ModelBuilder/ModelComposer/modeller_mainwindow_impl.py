@@ -480,7 +480,7 @@ class MainWindowImpl(QtWidgets.QMainWindow):
         print("debugging -- >>>>>>>>>>> found object", obj_ID, o)
         substrings = o.split('.')
         variant = substrings[-1]
-        if variant != "base":
+        if "base" not in variant:
           variants.add(substrings[-1])
     if len(variants) == 0:
       if not self.initialising:
