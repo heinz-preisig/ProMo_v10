@@ -477,7 +477,7 @@ class MainWindowImpl(QtWidgets.QMainWindow):
     variants = set()
     for o in self.ontology.node_arc_SubClasses["behaviours"]:
       if obj_ID in o:
-        print("debugging -- >>>>>>>>>>> found object", obj_ID, o)
+        # print("debugging -- >>>>>>>>>>> found object", obj_ID, o)
         substrings = o.split('.')
         variant = substrings[-1]
         if "base" not in variant:
@@ -503,10 +503,10 @@ class MainWindowImpl(QtWidgets.QMainWindow):
     variants = set()
     for o in self.ontology.node_arc_SubClasses["behaviours"]:
       if obj_ID in o:
-        print("debugging -- >>>>>>>>>>> found object", obj_ID, o)
+        # print("debugging -- >>>>>>>>>>> found object", obj_ID, o)
         substrings = o.split('.')
         variant = substrings[-1]
-        if variant != "base":
+        if "base" not in variant:
           variants.add(substrings[-1])
     if len(variants) == 0:
       if not self.initialising:
@@ -539,6 +539,8 @@ class MainWindowImpl(QtWidgets.QMainWindow):
 
   @staticmethod
   def __makeAndAddSelector(group_name, what, receiver, index, layout, autoexclusive=True):
+    if group_name == "nodes":
+      print("debugging -- group name")
     radio_selector = RadioSelector()
     list_of_choices = []
     counter = 0
@@ -590,6 +592,16 @@ class MainWindowImpl(QtWidgets.QMainWindow):
     index = self.named_network_dictionary.indexForNamedNetwork(self.current_network, named_network)
     self.radio_selectors["named_networks"].check("named_networks", index)
 
+  def setNodeType(self, node_type):
+    print("debugging -- node type", node_type)
+    nw = self.current_network
+    self.selected_node_type[nw] = node_type
+    index = self.nodeObjects_in_networks[nw].index(node_type)
+
+    self.radio_selectors["nodes"].check("nodes", index)
+
+    self.__makeComboNodeSubClass()
+
   @QtCore.pyqtSlot(str)
   def on_comboEditorPhase_currentTextChanged(self, phase):
     self.writeStatus("phase :%s" % phase)
@@ -599,6 +611,15 @@ class MainWindowImpl(QtWidgets.QMainWindow):
       return
     self.setEditorPhase(phase)
     pass
+
+  def on_comboNodeSubClass_currentTextChanged(self, node_sub_class):
+    self.current_node_variant = node_sub_class
+    print("debugging -- node subclass", node_sub_class)
+
+  def on_comboArcSubClass_currentTextChanged(self, arc_sub_class):
+    self.current_arc_variant = arc_sub_class
+    print("debugging -- arc subclass", arc_sub_class)
+
 
   def radioReceiverNetworks(self, token_class, token, token_string, toggle):
     # print("debugging -- maybe asked to change network from %s to %s"%(self.current_network, token_string))

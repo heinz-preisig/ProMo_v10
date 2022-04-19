@@ -169,9 +169,11 @@ class Commander(QtCore.QObject):
     if graphics_root_object == NAMES["node"]:
       network = self.model_container["nodes"][self.current_ID_node_or_arc]["network"]
       named_network = self.model_container["nodes"][self.current_ID_node_or_arc]["named_network"]
+      node_type = self.model_container["nodes"][self.current_ID_node_or_arc]["type"]
       # print("node simple network:", network)
       if network in self.main.networks:
         self.main.setNetwork(network, named_network)
+      self.main.setNodeType(node_type)
     if graphics_root_object == NAMES["connection"]:
       network = self.model_container["arcs"][self.current_ID_node_or_arc]["network"]
       named_network = self.model_container["arcs"][self.current_ID_node_or_arc]["named_network"]
@@ -478,6 +480,7 @@ class Commander(QtCore.QObject):
                                               node_type,
                                               features=features,
                                               variant=self.main.current_node_variant)
+
     self.state_nodes[newnodeID] = STATES[self.editor_phase]["nodes"][0]
 
     self.__redrawScene(self.current_ID_node_or_arc)
@@ -1508,7 +1511,7 @@ class Commander(QtCore.QObject):
           else:
             node.addIndicatorText(name, x, y, indicator[i]["label"])
 
-    if graphics_root_object in [NAMES["node"], NAMES["reservoir"]]:
+    if graphics_root_object in [NAMES["node"], NAMES["reservoir"]]:             #RULE: tool tip for root objects
       # add tool tip
       data = self.model_container["nodes"][ID]
       s = "<nobr> <b> node: <b> </nobr><br/>"
