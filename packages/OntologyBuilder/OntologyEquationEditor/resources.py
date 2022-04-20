@@ -866,7 +866,7 @@ def renderIndexListFromGlobalIDToInternal(indexList, indices):
 #   return number, lhs, rhs, network
 
 
-class VarEqTree():
+class  VarEqTree():
   """
   Generate a variable equation tree starting with a variable
 
@@ -1196,9 +1196,10 @@ def makeLatexDoc(file_name, assignments, ontology_container, dot_graph_file=""):
   print('ARGS: ', args)
 
   try:  # reports an error after completing the last one -- no idea
-    make_it = subprocess.Popen(
+    make_it = subprocess.run(
             args,
-            start_new_session=True
+            start_new_session=True,
+            check=True
             )
     out, error = make_it.communicate()
   except:

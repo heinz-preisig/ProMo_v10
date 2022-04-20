@@ -152,7 +152,6 @@ class UI_VariableTableDialog(VariableTable):
 
   def __showDeleteDialog(self, selected_ID):
     port_variable = self.variables[selected_ID].port_variable
-    reply1 = None
     if port_variable:
       reply1 = QtWidgets.QMessageBox.question(self, "choose", "this is a port variable -- do you want to delete it ?",
                                               YES, NO)
@@ -167,7 +166,7 @@ class UI_VariableTableDialog(VariableTable):
     e = d_equs_text.replace("\n", "\n   ")
     msg += "\n\nand consequently \n...variables:%s \n\n...equations %s" % (v, e)
 
-    reply2 = QtWidgets.QMessageBox.question(self, "choose", msg, YES, NO)
+    reply2 = QtWidgets.QMessageBox.question(self, "choose                             ", msg, YES, NO)
     if reply2 == YES:
       # print("debugging -- yes")
       self.__deleteVariable(d_vars, d_equs)

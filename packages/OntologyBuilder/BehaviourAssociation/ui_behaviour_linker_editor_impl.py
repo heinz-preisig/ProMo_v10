@@ -708,7 +708,9 @@ class MainWindowImpl(QtWidgets.QMainWindow):
     for obj in self.entity_behaviours:
       assignment = self.entity_behaviours[obj]
       if assignment != None:
+        self.ui.pushButtonViewLatex.hide()
         self.__makeLatexDocument(obj, assignment)
+        self.ui.pushButtonViewLatex.show()
       else:
         non_existing.append(obj)
     if non_existing != []:

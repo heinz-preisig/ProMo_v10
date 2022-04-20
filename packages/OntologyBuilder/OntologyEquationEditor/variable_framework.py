@@ -130,12 +130,14 @@ def makeIncidenceDictionaries(variables):
       #   inv_incidence_dictionary[int(i)].append(e)
 
   for e in incidence_dictionary:
-    if e == 197:
-      print("debugging again 197")
-    inc_list = incidence_dictionary[e][1:]
-    var = incidence_dictionary[e][0]
+    if e == 164:
+      print("debugging again 164")
+    var,inc_list = incidence_dictionary[e]
+    # var = incidence_dictionary[e][0]
     for i in inc_list:
-      inv_incidence_dictionary_set[int(var)].add(e)
+      if i == '163':
+        print("debugging variable 163")
+      inv_incidence_dictionary_set[int(i)].add(e)
 
   inv_incidence_dictionary = {}
   for e in inv_incidence_dictionary_set:
