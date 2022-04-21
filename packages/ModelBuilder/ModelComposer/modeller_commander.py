@@ -1223,8 +1223,9 @@ class Commander(QtCore.QObject):
     # NOTE: breaks the strict command design would need to be changed to receive a name from the protocol or
     # NOTE: an empty name then asking one for live change
     name = self.model_container["nodes"][nodeID]["name"]
-    if name == "default":
-      name = nodeID
+    variant = self.model_container["nodes"][nodeID]["variant"]
+    if name == "default":  #Note: set the default name
+      name = "%s - %s" %(nodeID, variant)
     self.string_dialog.show()
     self.string_dialog.setText(name)
 
@@ -1441,8 +1442,14 @@ class Commander(QtCore.QObject):
 
   # ===================================================================
   def __setName(self, node, name):
+    node_ID = self.current_ID_node_or_arc
+    # if node.ID == 1:
+    #   print("debugging")
+    variant = self.model_container["nodes"][node.ID]["variant"]
+
+
     if name == CR.DEFAULT:
-      name = str(node.ID)
+      name = "%s -- %s"%(str(node.ID), variant)
     for i in list(node.getItemList().keys()):
       if "name" == i:
         node.modifyComponentAppearance(i, ("setText", name))

@@ -52,12 +52,13 @@ class DataError(Exception):
 class NodeInfo(dict):  # (OrderedDict): #
   def __init__(self, name, network=None, named_network=None, node_class=CR.M_None, node_type=CR.M_None, features=[]):
 
-    dict.__init__(self)
+    dict.__init__(self)              #Note: record Node
     self["name"] = name
     self["network"] = network
     self["named_network"] = named_network
     self["class"] = node_class
     self["type"] = node_type
+    self["variant"] = None
 
 # RULE: feature controls what the node may contain tokens, conversion, left/right tokens, transfer constraints, injection
     if "has_tokens" in features:
@@ -809,6 +810,7 @@ class ModelContainer(dict):
         new_data[d][i_i]["nodes"][int(ii)] = data[d][i]["nodes"][ii]
         d_ = new_data[d][i_i]["nodes"].pop(ii)
       del new_data[d][i]
+
 
     # print("got here")
     return new_data
