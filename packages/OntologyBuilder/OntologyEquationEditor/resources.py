@@ -1196,10 +1196,10 @@ def makeLatexDoc(file_name, assignments, ontology_container, dot_graph_file=""):
   print('ARGS: ', args)
 
   try:  # reports an error after completing the last one -- no idea
-    make_it = subprocess.run(
+    make_it = subprocess.Popen(
             args,
             start_new_session=True,
-            check=True
+            # check=True
             )
     out, error = make_it.communicate()
   except:

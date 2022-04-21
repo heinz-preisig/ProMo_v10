@@ -408,11 +408,12 @@ class MainWindowImpl(QtWidgets.QMainWindow):
     self.ui.listRight.clear()
     self.ui.listVariants.clear()
     self.selected_variant_str_ID = "base"
-    self.__makeVariantList()
-    obj_str = self.selected_Entity_ID #__makeCurrentObjectString()
-    if not self.entity_behaviours[obj_str]:
+    exist_base = self.__makeVariantList()
+    # obj_str = self.selected_Entity_ID #__makeCurrentObjectString()
+    # if not self.entity_behaviours[obj_str]:
+    if not exist_base:
       # if self.node_arc_associations[self.selected_InterNetwork_strID]["arcs"]:
-      self.selected_object = v.text()
+      # self.selected_object = v.text()
       self.state = "make_base"
       # self.selected_variant = "base"
       self.__makeBase()
@@ -645,11 +646,19 @@ class MainWindowImpl(QtWidgets.QMainWindow):
     # print("debugging -- push right button")
     pass
 
-  def on_listVariants_currentRowChanged(self, row):
+  def on_listVariants_itemClicked(self, item):#currentRowChanged(self, row):
+    row = self.ui.listVariants.currentRow()
+    self.state = "show"
+    self.setState("show")
     if self.variant_list:
       self.selected_variant_str_ID = self.variant_list[row]
       self.selected_Entity_ID = self.__makeCurrentObjectString()
-      self.__makeAndDisplayEquationListLeftAndRight()
+      try:
+        self.__makeAndDisplayEquationListLeftAndRight()
+      except:
+        self.entity_behaviours.pop(self.selected_Entity_ID)
+        self.__makeVariantList()
+        return
       self.ui.groupBoxControls.show()
     else:
       self.ui.listLeft.clear()

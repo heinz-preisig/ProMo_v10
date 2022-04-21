@@ -106,7 +106,7 @@ def makeIncidenceDictionaries(variables):
   :param expression_network: network on which the expression is defined
   :return: incidence_dictionary
             - key: equation_ID (integer)
-            - value: (lhs-variable_ID, rhs-incidence list (integers) )
+            - value: (lhs-variable_ID, rhs-incidence list (no string) )
            inverse incidence matrix as dictionary
             - key : variable ID (integer)
             - value: list of equations (integer)
@@ -126,26 +126,15 @@ def makeIncidenceDictionaries(variables):
       inc_list = makeIncidentList(equations[e]["rhs"])
       incidence_dictionary[e] = (v, inc_list)
       equations[e]["incidence_list"] = inc_list
-      # for i in inc_list:
-      #   inv_incidence_dictionary[int(i)].append(e)
 
   for e in incidence_dictionary:
-    if e == 164:
-      print("debugging again 164")
     var,inc_list = incidence_dictionary[e]
-    # var = incidence_dictionary[e][0]
     for i in inc_list:
-      if i == '163':
-        print("debugging variable 163")
       inv_incidence_dictionary_set[int(i)].add(e)
 
   inv_incidence_dictionary = {}
   for e in inv_incidence_dictionary_set:
     inv_incidence_dictionary[e] = sorted(inv_incidence_dictionary_set[e])
-
-
-  # for i in inv_incidence_dictionary:
-  #   inv_incidence_dictionary[i] = sorted(incidence_dictionary[i])
 
   return incidence_dictionary, inv_incidence_dictionary #_set
 
@@ -276,6 +265,10 @@ def simulateDeletion(variables, var_ID, indices):
 
   # - key: equation_ID(integer)
   # - value: (lhs - variable_ID, rhs - incidence list (integers) )
+
+  # incidence_dictionary structure:
+  # incidence_dictionary[equation_ID:int] = (variable_ID, incidencce_list[variable_ID: no string)
+  # inv_incidence_dictionary_set[variable_ID: int]= [equation_ID:int]
 
   incidence_dictionary, inv_incidence_dictionary = makeIncidenceDictionaries(variables)
   reduceVars(inv_incidence_dictionary, variables, incidence_dictionary, d_vars, d_equs, var_ID)
@@ -742,7 +735,7 @@ class Variables(OrderedDict):
         key: network
         value: dict
                 key: variable class
-                value: list of valiable IDs
+                value: list of variable IDs
     dict index_accessible_variables_on_networks ::  RULE: defines namespaces
         key: network
         value: dict
