@@ -714,17 +714,23 @@ class MainWindowImpl(QtWidgets.QMainWindow):
 
   def on_pushButtonMakeLatex_pressed(self):
     non_existing = []
+    self.ui.pushButtonViewLatex.hide()
     for obj in self.entity_behaviours:
       assignment = self.entity_behaviours[obj]
-      if assignment != None:
-        self.ui.pushButtonViewLatex.hide()
-        self.__makeLatexDocument(obj, assignment)
-        self.ui.pushButtonViewLatex.show()
-      else:
-        non_existing.append(obj)
+      try:
+        if assignment != None:
+          self.__makeLatexDocument(obj, assignment)
+        else:
+          non_existing.append(obj)
+      except:
+        ans = makeMessageBox(message="error in compilation ---- could not compile object: %s"%obj)
+        print("error in compilation ---- could not compile object:", obj)
+        pass
     if non_existing != []:
       for obj in non_existing:
         print("error -- this object does not seem to have an assignment: %s" % obj)
+
+    self.ui.pushButtonViewLatex.show()
 
   def on_pushButtonViewLatex_pressed(self):
     obj = self.selected_Entity_ID #__makeCurrentObjectString()
