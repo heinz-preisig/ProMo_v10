@@ -48,6 +48,7 @@ from Common.common_resources import putDataOrdered
 from Common.common_resources import saveWithBackup
 from Common.common_resources import walkBreathFirstFnc
 from Common.common_resources import walkDepthFirstFnc
+from Common.pop_up_message_box import makeMessageBox
 from Common.qt_resources import NO
 from Common.qt_resources import OK
 from Common.qt_resources import YES
@@ -277,9 +278,6 @@ class OntologyContainer():
     #         }
 
     self.rules = self.ontology_container["rules"]  #
-    # fixing changing the ontology adding rule "variable_classes_being_state_variables"
-    if "variable_classes_being_state_variables" not in self.rules:
-      self.rules["variable_classes_being_state_variables"] = None
 
     #
     # TODO: converting tokens
@@ -413,6 +411,32 @@ class OntologyContainer():
     self.equations, \
     self.equation_information, \
     self.equation_inverse_index = self.__makeEquationAndIndexLists()
+
+  def checkForRule(self, rule):
+    """
+    checking for what rules exit in the ontology
+    """
+    # fixing changing the ontology adding rule "variable_classes_being_state_variables"
+    if rule not in self.rules:
+      return False
+    else:
+      return True
+
+  # def setRule(self, rule, value):
+  #   self.rules[rule] = value
+  #   self.writeMe()
+
+    #   self.rules["variable_classes_being_state_variables"] = None
+    # if "name_space" not in self.rules:
+    #   answ = makeMessageBox(message="use GLOBAL name space?",
+    #                         buttons=["YES", "NO"],
+    #                         infotext="choose if the equation ontology is based on a global name space or a discipline local one")
+    #   print("choice", answ)
+    #   if answ == "YES":
+    #     print("chosen yes ")
+    #   else:
+    #     print("chosen no ")
+    #   exit()
 
   def __setupInterfaces(self):
     # RULE: by default all variable classes from the left network are available
@@ -1164,7 +1188,7 @@ class OntologyContainer():
     for hash in list(container.keys()):
       container[hash] = self.__getattribute__(hash)
 
-    putDataOrdered(container, self.ontology_file)
+    saveWithBackup(self.ontology_file)
 
   def writeVariables(self, variables, indices, ProMoIRI):
     """

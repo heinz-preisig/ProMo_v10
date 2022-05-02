@@ -74,7 +74,8 @@ class UI_Equations(QtWidgets.QWidget):
                network_for_expression,
                variable_types_variable,
                variable_types_expression,
-               enabled_variable_types=[]
+               enabled_variable_types=[],
+               global_name_space = True
                ):
     """
     Constructor
@@ -102,6 +103,7 @@ class UI_Equations(QtWidgets.QWidget):
     self.variable_types_variable = variable_types_variable
     self.variable_types_expression = variable_types_expression
     self.enabled_variable_types = enabled_variable_types
+    self.global_name_space = global_name_space
 
     self.equation_documentation = ""
 
@@ -256,7 +258,11 @@ class UI_Equations(QtWidgets.QWidget):
 
   def on_lineNewVariable_returnPressed(self):  # TODO: check on validator
     symbol = str(self.ui.lineNewVariable.text()) # RULE: changed from local name space to global name space
-    if self.variables.existSymbolGlobal(symbol): #self.variables.existSymbol(self.network_for_variable, symbol):
+    if self.global_name_space:
+      test = self.variables.existSymbolGlobal(symbol)
+    else:
+      test = self.variables.existSymbol(self.network_for_variable, symbol)
+    if test:
       self.MSG("variable already defined")
       self.ui.lineExpression.hide()
       return
@@ -290,8 +296,13 @@ class UI_Equations(QtWidgets.QWidget):
     print("debugging -- text change", text)
     if not self.status_new_variable:
       return
-    #RULE: changed from local name space to global name space
-    if self.variables.existSymbolGlobal(text): #     if self.variables.existSymbol(self.network_for_variable, text):
+    #rule: changed from local name space to global name space
+    # rule enable both
+    if self.global_name_space:
+      test = self.variables.existSymbolGlobal(text)
+    else:
+      test = self.variables.existSymbol(self.network_for_variable, text)
+    if test: #     if :
       self.MSG("variable already defined")
     else:
       self.MSG("OK")

@@ -48,6 +48,7 @@ from Common.resource_initialisation import DIRECTORIES
 from Common.resource_initialisation import FILES
 from Common.resources_icons import getIcon
 from Common.resources_icons import roundButton
+from Common.pop_up_message_box import makeMessageBox
 from Common.ui_source_sink_linking_impl import UI_SourceSinkLinking
 from Common.ui_text_browser_popup_impl import UI_FileDisplayWindow
 from OntologyBuilder.OntologyEquationEditor.resources import CODE
@@ -207,12 +208,28 @@ class UiOntologyDesign(QMainWindow):
 
     self.compile_only = True
 
+    if not self.ontology_container.checkForRule("name_space"):
+      answer = makeMessageBox(message="the nature of the name space handling must be defined -- run OntologyFoundationDesigner",
+                              buttons=["OK"]
+                              )
+      exit(-1)
+    else:
+      self.global_name_space = self.ontology_container.rules["name_space"]
+
+
     # self.__compile("latex")
     # self.__compile("python")
     # self.__compile("cpp")
     # self.__compile("matlab")
 
     # self.__makeDotGraphs()
+    print("debugging -- global name space", self.global_name_space)
+    if self.global_name_space:
+      answer = makeMessageBox(message="this is a global name space ontology do you want to change it",
+                              buttons = ["yes", "no"],
+                              infotext="Gives you a possibility of the change to local name spaces -- for the time being one cannot change the other way around")
+      if answer == "YES":
+        self.__changeFromGlobalToLocal()
     return
 
   def on_pushInfo_pressed(self):
@@ -376,11 +393,15 @@ class UiOntologyDesign(QMainWindow):
     if self.ui.radioVariablesAliases.isChecked():
       self.on_radioVariablesAliases_pressed()
     else:
-      # self.__setupEdit("interface")
-      try:
-        self.dialog_interface.close()
-      except:
-        pass
+      if self.global_name_space:
+        try:
+          self.dialog_interface.close()
+        except:
+          pass
+          # return
+      else:
+        self.__setupEdit("interface")
+
       self.__setupEditInterface()
       self.__showFilesControl()
 
@@ -546,7 +567,8 @@ class UiOntologyDesign(QMainWindow):
                               network_for_variable,
                               network_for_expression,
                               vars_types_on_network_variable,
-                              vars_types_on_network_expression
+                              vars_types_on_network_expression,
+                              global_name_space=self.global_name_space
                               )
     self.ui_eq.update_space_information.connect(self.__updateVariableTable)
 
@@ -1173,3 +1195,20 @@ class UiOntologyDesign(QMainWindow):
     for ui in radios_ui:
       ui.setChecked(False)
     radios_ui[which].setChecked(True)
+
+  def __changeFromGlobalToLocal(self):
+    # print("not yet implemented __changeFromGlobalToLocal")
+    for equ_ID in self.ontology_container.equation_variable_dictionary:
+      variable_ID, equation = self.ontology_container.equation_variable_dictionary[equ_ID]
+      incidence_list = equation["incidence_list"]
+      variable_network = self.variables[variable_ID].network
+      for v_str_ID in incidence_list:
+        v_ID = int(v_str_ID)
+        network_v = self.variables[v_ID].network
+        if variable_network != network_v:
+          for i in self.interconnection_nws:
+            if (variable_network in i):
+              print("inter", i)
+              print("networks", variable_network, network_v)
+              if (network_v in i):
+                print("change name space", variable_ID, variable_network, v_ID, network_v)

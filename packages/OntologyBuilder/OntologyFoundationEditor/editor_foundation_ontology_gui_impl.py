@@ -40,8 +40,6 @@ from Common.common_resources import putData
 from Common.common_resources import putDataOrdered
 from Common.common_resources import saveBackupFile
 from Common.pop_up_message_box import makeMessageBox
-from Common.qt_resources import NO
-from Common.qt_resources import YES
 from Common.radio_selector_impl import RadioSelector
 from Common.record_definitions import OntologyContainerFile
 from Common.record_definitions import RecordProMoIRI
@@ -177,7 +175,7 @@ class UI_EditorFoundationOntology(QtWidgets.QMainWindow):
         #                                        "the whole process?",
         #                                        NO, YES )
         reply = makeMessageBox("There is a variable file \n -- do you want to delete it and restart "
-                                               "the whole process?", ["NO","YES"])
+                               "the whole process?", ["NO", "YES"])
         if reply == "YES":
           self.lock_delete = False
           old, new, next = saveBackupFile(variable_file)
@@ -194,12 +192,11 @@ class UI_EditorFoundationOntology(QtWidgets.QMainWindow):
     self.__makeOntology()
 
     # setup rules for index generation
-    if  "network_enable_adding_indices" not in self.ontology["rules"]:
+    if "network_enable_adding_indices" not in self.ontology["rules"]:
       self.ontology["rules"]["network_enable_adding_indices"] = {}
     for nw in sorted(self.ontology_tree.keys()):
       if nw not in self.ontology["rules"]["network_enable_adding_indices"]:
         self.ontology["rules"]["network_enable_adding_indices"][nw] = False
-
 
     self.ontology_name = ontology_name
 
@@ -1086,7 +1083,6 @@ class UI_EditorFoundationOntology(QtWidgets.QMainWindow):
     self.current_network = self.ui.treeWidget.currentItem().name
     print("debugging -- current network selected: ", self.current_network)
 
-
     self.__on_network_selected()
 
   def on_pushInfo_pressed(self):
@@ -1098,30 +1094,33 @@ class UI_EditorFoundationOntology(QtWidgets.QMainWindow):
 
   def __addFixedRules(self):  # RULE: fixed rules
 
-  # RULE: main rules
-    FIXED_RULES = {
+    # RULE: main rules
+    RULES = {
             "variable_classes_having_port_variables": [],
             "variable_classes_being_state_variables": [],
             "numerical_value"                       : "value",
             "nodes_allowing_token_injection"        : ["constant"],
-              "nodes_allowing_token_conversion"       : ["dynamic", "event"],
+            "nodes_allowing_token_conversion"       : ["dynamic", "event"],
             "nodes_allowing_token_transfer"         : ["intraface"],
+            "name_space"                            : None,
             }
 
     rules = self.ontology["rules"]
-    for r in FIXED_RULES:
+    for r in RULES:
       if r not in rules:
-        rules[r] = FIXED_RULES[r]
+        rules[r] = RULES[r]
 
-    # if "variable_classes_having_port_variables" not in rules:
-    #   rules["variable_classes_having_port_variables"] = []
-    # if "variable_classes_being_state_variables" not in rules:
-    #   rules["variable_classes_being_state_variables"] = []
-    # if "numerical_value" not in rules:
-    #   rules[]
-    # rules["nodes_allowing_token_injection"] = ["constant", "dynamic"]
-    # rules["nodes_allowing_token_conversion"] = ["dynamic", "event"]
-    # rules["nodes_allowing_token_transfer"] = ["intraface"]
+
+    if not rules["name_space"]:
+      answ = makeMessageBox(message="use GLOBAL name space?",
+                                buttons=["YES", "NO"],
+                                infotext="choose if the equation ontology is based on a global name space or a discipline local one""message")
+      if answ == "YES":
+        print("chosen yes ")
+        rules["name_space"] = True
+      else:
+        print("chosen no ")
+        rules["name_space"] = False
 
   def on_pushSave_pressed(self):
     self.__ui_status("saved")
@@ -1208,9 +1207,10 @@ class UI_EditorFoundationOntology(QtWidgets.QMainWindow):
       self.ui.radioButtonIntra.setChecked(True)
 
     # is adding indices enabled?
-    if self.current_network  not in self.ontology["rules"]["network_enable_adding_indices"]:
+    if self.current_network not in self.ontology["rules"]["network_enable_adding_indices"]:
       self.ontology["rules"]["network_enable_adding_indices"][self.current_network] = False
-    self.ui.radioButtonIsEnableAddingIndex.setChecked(self.ontology["rules"]["network_enable_adding_indices"][self.current_network])
+    self.ui.radioButtonIsEnableAddingIndex.setChecked(
+            self.ontology["rules"]["network_enable_adding_indices"][self.current_network])
 
   def on_radioButtonInter_toggled(self, position):
     what = "intra"
@@ -1281,7 +1281,6 @@ class UI_EditorFoundationOntology(QtWidgets.QMainWindow):
   def on_radioButtonIsEnableAddingIndex_toggled(self, position):
     print("debugging -- radio button position: ", position)
     self.ontology["rules"]["network_enable_adding_indices"][self.current_network] = position
-
 
     # variable_classes_being_state_variables = set(self.ontology["rules"]["variable_classes_being_state_variables"])
     # if position:
