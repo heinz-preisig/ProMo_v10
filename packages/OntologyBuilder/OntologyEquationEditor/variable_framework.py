@@ -662,6 +662,7 @@ class Variables(OrderedDict):
     # .interconnection_network_dictionary.keys())
     self.heirs_network_dictionary = ontology_container.heirs_network_dictionary
     self.ProMoIRI = self.ontology_container.ProMoIRI
+    self.global_name_space = self.ontology_container.rules["name_space"]
 
     # keep track of changes and additions
     # self.changes = TrackChanges()
@@ -854,10 +855,11 @@ class Variables(OrderedDict):
       else:
         space = self.heirs_network_dictionary[definition_network]
         self.nameSpacesForVariableLabel[label][no + 1] = space
-      if label in self.nameSpacesForVariableLabelGlobal:
-        raise VarError(" label already exists")
-      else:
-        self.nameSpacesForVariableLabelGlobal.append(label)
+      if self.global_name_space:
+        if label in self.nameSpacesForVariableLabelGlobal:
+          raise VarError(" label already exists")
+        else:
+          self.nameSpacesForVariableLabelGlobal.append(label)
 
     acc = {}
     for nw in self.networks:
@@ -872,8 +874,10 @@ class Variables(OrderedDict):
               acc[nw][variable_class].append(ID)
 
     # RULE: alternatives -- interconnections have variables version 8 and older or no interconnection variables direct access to the "other side"
-    inter_connections = False
-    if inter_connections :
+    # inter_connections = False
+    # if inter_connections :
+
+    if not self.global_name_space:
       for nw in self.interconnection_networks:
         acc[nw] = {}
         for variable_class in self.ontology_container.variable_types_on_interfaces[nw]:

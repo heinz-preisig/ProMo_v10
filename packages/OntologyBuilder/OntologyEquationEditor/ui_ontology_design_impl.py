@@ -742,7 +742,10 @@ class UiOntologyDesign(QMainWindow):
 
     # main.tex
     names_names_for_variables = []
-    nw_list = self.networks  + self.intraconnection_nws_list #+ self.interconnection_nws_list
+    if self.global_name_space:
+      nw_list = self.networks  + self.intraconnection_nws_list #+ self.interconnection_nws_list
+    else:
+      nw_list = self.networks  + self.intraconnection_nws_list + self.interconnection_nws_list
     for nw in nw_list:
       names_names_for_variables.append(str(nw).replace(CONNECTION_NETWORK_SEPARATOR, '--'))
 
@@ -1097,13 +1100,19 @@ class UiOntologyDesign(QMainWindow):
   def __setupVariableTable(self):
     choice = self.current_variable_type
     if self.current_network in self.interconnection_nws:
-      network_variable = self.current_network  # self.interconnection_nws[self.current_network]["right"]
-      network_expression = network_variable  # self.interconnection_nws[self.current_network]["left"]
+      if self.global_name_space:
+        network_variable = self.current_network  # self.interconnection_nws[self.current_network]["right"]
+        network_expression = network_variable  # self.interconnection_nws[self.current_network]["left"]
+      else:
+        network_variable = self.interconnection_nws[self.current_network]["right"]
+        network_expression = self.interconnection_nws[self.current_network]["left"]
     elif self.current_network in self.intraconnection_nws:
-      # network_variable = self.intraconnection_nws[self.current_network]["right"]
-      # network_expression = self.intraconnection_nws[self.current_network]["left"]
-      network_variable = self.current_network  # self.intraconnection_nws[self.current_network]["right"]
-      network_expression = self.current_network  # self.intraconnection_nws[self.current_network]["left"]
+      if self.global_name_space:
+        network_variable = self.current_network  # self.intraconnection_nws[self.current_network]["right"]
+        network_expression = self.current_network  # self.intraconnection_nws[self.current_network]["left"]
+      else:
+        network_variable = self.intraconnection_nws[self.current_network]["right"]
+        network_expression = self.intraconnection_nws[self.current_network]["left"]
     else:
       network_variable = self.current_network
       network_expression = self.current_network
@@ -1198,6 +1207,7 @@ class UiOntologyDesign(QMainWindow):
 
   def __changeFromGlobalToLocal(self):
     # print("not yet implemented __changeFromGlobalToLocal")
+    found = False
     for equ_ID in self.ontology_container.equation_variable_dictionary:
       variable_ID, equation = self.ontology_container.equation_variable_dictionary[equ_ID]
       incidence_list = equation["incidence_list"]
@@ -1207,8 +1217,12 @@ class UiOntologyDesign(QMainWindow):
         network_v = self.variables[v_ID].network
         if variable_network != network_v:
           for i in self.interconnection_nws:
-            if (variable_network in i):
-              print("inter", i)
-              print("networks", variable_network, network_v)
-              if (network_v in i):
+            left_nw, right_nw = i.split(CONNECTION_NETWORK_SEPARATOR)
+            if (variable_network == left_nw):
+              if (network_v == right_nw):
+                print("inter", i)
+                print("networks", variable_network, network_v)
                 print("change name space", variable_ID, variable_network, v_ID, network_v)
+                # TODO: introduce code for generating a cut equation and delete the direct link equation.
+                found = True
+    
